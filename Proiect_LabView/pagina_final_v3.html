@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #3498db;
+            font-size: 1.2rem;
+        }
+        .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .unit {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .last-updated {
+            text-align: right;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        .thermometer {
+            color: #e74c3c;
+        }
+        .humidity {
+            color: #3498db;
+        }
+        .gas {
+            color: #f39c12;
+        }
+        .comfort {
+            color: #2ecc71;
+        }
+        .max-values, .min-values {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .max-values h2, .min-values h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .max-values-grid, .min-values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .max-value-item, .min-value-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .max-value-label, .min-value-label {
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        .max-value, .min-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .max-value-date, .min-value-date {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .values-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .dashboard, .max-values-grid, .min-values-grid {
+                grid-template-columns: 1fr;
+            }
+            .values-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sensor Data Monitoring</h1>
+        
+        <div class="last-updated">Last updated: <span id="update-time">Loading...</span></div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2><i class="thermometer">🌡️</i> Temperature</h2>
+                <div class="value" id="temperature">--</div>
+                <div class="unit">°C</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="humidity">💧</i> Humidity</h2>
+                <div class="value" id="humidity">--</div>
+                <div class="unit">%</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="gas">⚠️</i> MQ3 Concentration</h2>
+                <div class="value" id="mq3">--</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="gas">⚠️</i> MQ5 Concentration</h2>
+                <div class="value" id="mq5">--</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="comfort">😊</i> Heat Index</h2>
+                <div class="value" id="comfort">--</div>
+                <div class="unit">Index</div>
+            </div>
+        </div>
+        
+        <div class="values-container">
+            <div class="max-values">
+                <h2>Maximum Recorded Values</h2>
+                <div class="max-values-grid" id="max-values-container">
+                    <!-- Max values will be inserted here -->
+                </div>
+            </div>
+            
+            <div class="min-values">
+                <h2>Minimum Recorded Values</h2>
+                <div class="min-values-grid" id="min-values-container">
+                    <!-- Min values will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Temperature & Humidity</h2>
+            <canvas id="tempHumidityChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Gas Concentrations</h2>
+            <canvas id="gasChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Heat Index</h2>
+            <canvas id="comfortChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Charts initialization
+        const tempHumidityCtx = document.getElementById('tempHumidityChart').getContext('2d');
+        const gasCtx = document.getElementById('gasChart').getContext('2d');
+        const comfortCtx = document.getElementById('comfortChart').getContext('2d');
+        
+        const tempHumidityChart = new Chart(tempHumidityCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Humidity (%)',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Temperature (°C)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Humidity (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                // Show date and time in tooltip
+                                const data = context[0].dataset.data[context[0].dataIndex];
+                                const label = context[0].label;
+                                const date = new Date(data.timestamp || label);
+                                return date.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        const gasChart = new Chart(gasCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'MQ3 Concentration ',
+                        data: [],
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'MQ5 Concentration ',
+                        data: [],
+                        borderColor: '#d35400',
+                        backgroundColor: 'rgba(211, 84, 0, 0.1)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Concentration'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                // Show date and time in tooltip
+                                const data = context[0].dataset.data[context[0].dataIndex];
+                                const label = context[0].label;
+                                const date = new Date(data.timestamp || label);
+                                return date.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const comfortChart = new Chart(comfortCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Heat Index',
+                        data: [],
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Comfort Index'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                // Show date and time in tooltip
+                                const data = context[0].dataset.data[context[0].dataIndex];
+                                const label = context[0].label;
+                                const date = new Date(data.timestamp || label);
+                                return date.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateUI(data) {
+            if (!data || data.length === 0) {
+                console.warn('Nu sunt date disponibile');
+                return;
+            }
+
+            const latest = data[data.length - 1];
+            
+            // Verifică existența câmpurilor
+            const fields = {
+                temperature: latest.temperature || '--',
+                humidity: latest.humidity || '--',
+                mq3: latest.mq3 || '--',
+                mq5: latest.mq5 || '--',
+                comfort: latest.comfort || '--'
+            };
+            
+            // Actualizează UI
+            document.getElementById('temperature').textContent = fields.temperature;
+            document.getElementById('humidity').textContent = fields.humidity;
+            document.getElementById('mq3').textContent = fields.mq3;
+            document.getElementById('mq5').textContent = fields.mq5;
+            document.getElementById('comfort').textContent = fields.comfort;
+            
+            document.getElementById('update-time').textContent = new Date().toLocaleString();
+            
+            // Actualizează graficele și valorile maxime/minime
+            updateCharts(data);
+            updateMaxValues(data);
+            updateMinValues(data);
+        }
+
+        function updateMaxValues(data) {
+            if (!data || data.length === 0) return;
+
+            // Calculate max values
+            const maxValues = {
+                temperature: { value: -Infinity, date: '' },
+                humidity: { value: -Infinity, date: '' },
+                mq3: { value: -Infinity, date: '' },
+                mq5: { value: -Infinity, date: '' },
+                comfort: { value: -Infinity, date: '' }
+            };
+            
+            data.forEach(item => {
+                const temperature = parseFloat(item.temperature);
+                const humidity = parseFloat(item.humidity);
+                const mq3 = parseFloat(item.mq3);
+                const mq5 = parseFloat(item.mq5);
+                const comfort = parseFloat(item.comfort);
+
+                if (!isNaN(temperature) && temperature > maxValues.temperature.value) {
+                    maxValues.temperature.value = temperature;
+                    maxValues.temperature.date = item.date || '';
+                }
+                if (!isNaN(humidity) && humidity > maxValues.humidity.value) {
+                    maxValues.humidity.value = humidity;
+                    maxValues.humidity.date = item.date || '';
+                }
+                if (!isNaN(mq3) && mq3 > maxValues.mq3.value) {
+                    maxValues.mq3.value = mq3;
+                    maxValues.mq3.date = item.date || '';
+                }
+                if (!isNaN(mq5) && mq5 > maxValues.mq5.value) {
+                    maxValues.mq5.value = mq5;
+                    maxValues.mq5.date = item.date || '';
+                }
+                if (!isNaN(comfort) && comfort > maxValues.comfort.value) {
+                    maxValues.comfort.value = comfort;
+                    maxValues.comfort.date = item.date || '';
+                }
+            });
+
+            // Update the max values display
+            const maxContainer = document.getElementById('max-values-container');
+            maxContainer.innerHTML = `
+                <div class="max-value-item">
+                    <span class="max-value-label">Max Temperature</span>
+                    <span class="max-value thermometer">${maxValues.temperature.value.toFixed(1)} °C</span>
+                    <span class="max-value-date">${maxValues.temperature.date || 'N/A'}</span>
+                </div>
+                <div class="max-value-item">
+                    <span class="max-value-label">Max Humidity</span>
+                    <span class="max-value humidity">${maxValues.humidity.value.toFixed(1)} %</span>
+                    <span class="max-value-date">${maxValues.humidity.date || 'N/A'}</span>
+                </div>
+                <div class="max-value-item">
+                    <span class="max-value-label">Max MQ3</span>
+                    <span class="max-value gas">${maxValues.mq3.value.toFixed(1)} </span>
+                    <span class="max-value-date">${maxValues.mq3.date || 'N/A'}</span>
+                </div>
+                <div class="max-value-item">
+                    <span class="max-value-label">Max MQ5</span>
+                    <span class="max-value gas">${maxValues.mq5.value.toFixed(1)} </span>
+                    <span class="max-value-date">${maxValues.mq5.date || 'N/A'}</span>
+                </div>
+                <div class="max-value-item">
+                    <span class="max-value-label">Max Comfort</span>
+                    <span class="max-value comfort">${maxValues.comfort.value.toFixed(1)}</span>
+                    <span class="max-value-date">${maxValues.comfort.date || 'N/A'}</span>
+                </div>
+            `;
+        }
+
+        function updateMinValues(data) {
+            if (!data || data.length === 0) return;
+
+            // Calculate min values
+            const minValues = {
+                temperature: { value: Infinity, date: '' },
+                humidity: { value: Infinity, date: '' },
+                mq3: { value: Infinity, date: '' },
+                mq5: { value: Infinity, date: '' },
+                comfort: { value: Infinity, date: '' }
+            };
+            
+            data.forEach(item => {
+                const temperature = parseFloat(item.temperature);
+                const humidity = parseFloat(item.humidity);
+                const mq3 = parseFloat(item.mq3);
+                const mq5 = parseFloat(item.mq5);
+                const comfort = parseFloat(item.comfort);
+
+                if (!isNaN(temperature) && temperature < minValues.temperature.value && temperature !=0) {
+                    minValues.temperature.value = temperature;
+                    minValues.temperature.date = item.date || '';
+                }
+                if (!isNaN(humidity) && humidity < minValues.humidity.value && humidity !=0) {
+                    minValues.humidity.value = humidity;
+                    minValues.humidity.date = item.date || '';
+                }
+                if (!isNaN(mq3) && mq3 < minValues.mq3.value && mq3 !=0) {
+                    minValues.mq3.value = mq3;
+                    minValues.mq3.date = item.date || '';
+                }
+                if (!isNaN(mq5) && mq5 < minValues.mq5.value && mq5 !=0) {
+                    minValues.mq5.value = mq5;
+                    minValues.mq5.date = item.date || '';
+                }
+                if (!isNaN(comfort) && comfort < minValues.comfort.value && comfort !=46.3) {
+                    minValues.comfort.value = comfort;
+                    minValues.comfort.date = item.date || '';
+                }
+            });
+
+            // Update the min values display
+            const minContainer = document.getElementById('min-values-container');
+            minContainer.innerHTML = `
+                <div class="min-value-item">
+                    <span class="min-value-label">Min Temperature</span>
+                    <span class="min-value thermometer">${minValues.temperature.value.toFixed(1)} °C</span>
+                    <span class="min-value-date">${minValues.temperature.date || 'N/A'}</span>
+                </div>
+                <div class="min-value-item">
+                    <span class="min-value-label">Min Humidity</span>
+                    <span class="min-value humidity">${minValues.humidity.value.toFixed(1)} %</span>
+                    <span class="min-value-date">${minValues.humidity.date || 'N/A'}</span>
+                </div>
+                <div class="min-value-item">
+                    <span class="min-value-label">Min MQ3</span>
+                    <span class="min-value gas">${minValues.mq3.value.toFixed(1)} </span>
+                    <span class="min-value-date">${minValues.mq3.date || 'N/A'}</span>
+                </div>
+                <div class="min-value-item">
+                    <span class="min-value-label">Min MQ5</span>
+                    <span class="min-value gas">${minValues.mq5.value.toFixed(1)} </span>
+                    <span class="min-value-date">${minValues.mq5.date || 'N/A'}</span>
+                </div>
+                <div class="min-value-item">
+                    <span class="min-value-label">Min Comfort</span>
+                    <span class="min-value comfort">${minValues.comfort.value.toFixed(1)}</span>
+                    <span class="min-value-date">${minValues.comfort.date || 'N/A'}</span>
+                </div>
+            `;
+        }
+
+        function updateCharts(data) {
+            if (!data || data.length === 0) return;
+
+            const labels = [];
+            const temperatures = [];
+            const humidities = [];
+            const mq3Values = [];
+            const mq5Values = [];
+            const comfortValues = [];
+
+            data.forEach(item => {
+                const datetime = `${item.date} ${item.time}`;
+                const xValue = new Date(datetime);
+
+                const temp = parseFloat(item.temperature);
+                const hum = parseFloat(item.humidity);
+                const mq3 = parseFloat(item.mq3);
+                const mq5 = parseFloat(item.mq5);
+                const comfort = parseFloat(item.comfort);
+
+                // Adăugă doar valorile care nu sunt zero (pentru temperatură și umiditate)
+                if (temp !== 0 || hum !== 0 || mq3 !== 0 || mq5 !== 0 || comfort !== 0) {
+                    labels.push(datetime);
+
+                    // Adaugă valorile pentru temperatură, umiditate și gaze doar dacă nu sunt zero
+                    if (temp !== 0) {
+                        temperatures.push({ x: xValue, y: temp });
+                    }
+
+                    if (hum !== 0) {
+                        humidities.push({ x: xValue, y: hum });
+                    }
+
+                    if (mq3 !== 0) {
+                        mq3Values.push({ x: xValue, y: mq3 });
+                    }
+
+                    if (mq5 !== 0) {
+                        mq5Values.push({ x: xValue, y: mq5 });
+                    }
+
+                    if (comfort !== 0 && comfort !== 46.3) { // Ignoră valoarea implicită 46.3, cand temp=0 si umid=0
+                        comfortValues.push({ x: xValue, y: comfort });
+                    }
+                }
+            });
+
+            // Actualizează graficul temperatură/umiditate
+            tempHumidityChart.data.labels = labels;
+            tempHumidityChart.data.datasets[0].data = temperatures;
+            tempHumidityChart.data.datasets[1].data = humidities;
+            tempHumidityChart.update();
+
+            // Actualizează graficul gaze
+            gasChart.data.labels = labels;
+            gasChart.data.datasets[0].data = mq3Values;
+            gasChart.data.datasets[1].data = mq5Values;
+            gasChart.update();
+
+            // Actualizează graficul comfort termic
+            comfortChart.data.labels = labels;
+            comfortChart.data.datasets[0].data = comfortValues;
+            comfortChart.update();
+        }
+
+        async function fetchData() {
+            try {
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbwL4bvmxwi1_mS0cLeZQYDJbrP66hHVZC4KJ52Hyr7suklhMNRnTjlDs1DelG52BVY/exec';
+                
+                // Adaugă un parametru cache busting
+                const urlWithCacheBust = `${scriptUrl}?t=${Date.now()}`;
+                
+                const response = await fetch(urlWithCacheBust);
+                
+                // Verifică dacă răspunsul este valid
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Verifică conținutul înainte de parsare
+                const text = await response.text();
+                if (!text.trim()) {
+                    throw new Error('Răspuns gol de la server');
+                }
+                
+                // Debug: afișează răspunsul primit
+                console.log('Răspuns brut:', text);
+                
+                const data = JSON.parse(text);
+                
+                // Verifică structura datelor
+                if (!data || !data.data || !Array.isArray(data.data)) {
+                    throw new Error('Structură invalidă a datelor');
+                }
+                
+                updateUI(data.data);
+                
+            } catch (error) {
+                console.error('Eroare la preluare date:', error);
+                document.getElementById('update-time').textContent = `Eroare: ${error.message}`;
+                
+                // Încearcă din nou peste 3 secunde
+                setTimeout(fetchData, 3000);
+            }
+        }
+
+        // Initial load
+        fetchData();
+        
+        // Refresh data every 5 seconds
+        setInterval(fetchData, 3000);
+    </script>
+</body>
+</html>

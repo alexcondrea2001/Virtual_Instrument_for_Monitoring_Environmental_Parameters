@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #3498db;
+            font-size: 1.2rem;
+        }
+        .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .unit {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .last-updated {
+            text-align: right;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        .thermometer {
+            color: #e74c3c;
+        }
+        .humidity {
+            color: #3498db;
+        }
+        .gas {
+            color: #f39c12;
+        }
+        .comfort {
+            color: #2ecc71;
+        }
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sensor Data Monitoring</h1>
+        
+        <div class="last-updated">Last updated: <span id="update-time">Loading...</span></div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2><i class="thermometer">🌡️</i> Temperature</h2>
+                <div class="value" id="temperature">--</div>
+                <div class="unit">°C</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="humidity">💧</i> Humidity</h2>
+                <div class="value" id="humidity">--</div>
+                <div class="unit">%</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="gas">⚠️</i> MQ3 Concentration</h2>
+                <div class="value" id="mq3">--</div>
+                <div class="unit">ppm</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="gas">⚠️</i> MQ5 Concentration</h2>
+                <div class="value" id="mq5">--</div>
+                <div class="unit">ppm</div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="comfort">😊</i> Thermal Comfort</h2>
+                <div class="value" id="comfort">--</div>
+                <div class="unit">Index</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Temperature & Humidity</h2>
+            <canvas id="tempHumidityChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Gas Concentrations</h2>
+            <canvas id="gasChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Charts initialization
+        const tempHumidityCtx = document.getElementById('tempHumidityChart').getContext('2d');
+        const gasCtx = document.getElementById('gasChart').getContext('2d');
+        
+        const tempHumidityChart = new Chart(tempHumidityCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Humidity (%)',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Temperature (°C)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Humidity (%)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        const gasChart = new Chart(gasCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'MQ3 Concentration (ppm)',
+                        data: [],
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'MQ5 Concentration (ppm)',
+                        data: [],
+                        borderColor: '#d35400',
+                        backgroundColor: 'rgba(211, 84, 0, 0.1)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Concentration (ppm)'
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateUI(data) {
+            if (!data || data.length === 0) {
+                console.warn('Nu sunt date disponibile');
+                return;
+            }
+
+            const latest = data[data.length - 1];
+            
+            // Verifică existența câmpurilor
+            const fields = {
+                temperature: latest.temperature || '--',
+                humidity: latest.humidity || '--',
+                mq3: latest.mq3 || '--',
+                mq5: latest.mq5 || '--',
+                comfort: latest.comfort || '--'
+            };
+            
+            // Actualizează UI
+            document.getElementById('temperature').textContent = fields.temperature;
+            document.getElementById('humidity').textContent = fields.humidity;
+            document.getElementById('mq3').textContent = fields.mq3;
+            document.getElementById('mq5').textContent = fields.mq5;
+            document.getElementById('comfort').textContent = fields.comfort;
+            
+            document.getElementById('update-time').textContent = new Date().toLocaleString();
+            
+            // Actualizează graficele
+            updateCharts(data);
+        }
+
+        function updateCharts(data) {
+            if (!data || data.length === 0) return;
+
+            // Extrage timpul și datele
+            const labels = data.map(item => `${item.time} ${item.ampm}`);
+            const temperatures = data.map(item => item.temperature);
+            const humidities = data.map(item => item.humidity);
+            const mq3Values = data.map(item => item.mq3);
+            const mq5Values = data.map(item => item.mq5);
+
+            // Actualizează graficul temperatură/umiditate
+            tempHumidityChart.data.labels = labels;
+            tempHumidityChart.data.datasets[0].data = temperatures;
+            tempHumidityChart.data.datasets[1].data = humidities;
+            tempHumidityChart.update();
+
+            // Actualizează graficul gaze
+            gasChart.data.labels = labels;
+            gasChart.data.datasets[0].data = mq3Values;
+            gasChart.data.datasets[1].data = mq5Values;
+            gasChart.update();
+        }
+
+        async function fetchData() {
+            try {
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbwL4bvmxwi1_mS0cLeZQYDJbrP66hHVZC4KJ52Hyr7suklhMNRnTjlDs1DelG52BVY/exec';
+                
+                // Adaugă un parametru cache busting
+                const urlWithCacheBust = `${scriptUrl}?t=${Date.now()}`;
+                
+                const response = await fetch(urlWithCacheBust);
+                
+                // Verifică dacă răspunsul este valid
+                if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Verifică conținutul înainte de parsare
+                const text = await response.text();
+                if (!text.trim()) {
+                throw new Error('Răspuns gol de la server');
+                }
+                
+                // Debug: afișează răspunsul primit
+                console.log('Răspuns brut:', text);
+                
+                const data = JSON.parse(text);
+                
+                // Verifică structura datelor
+                if (!data || !data.data || !Array.isArray(data.data)) {
+                throw new Error('Structură invalidă a datelor');
+                }
+                
+                updateUI(data.data);
+                
+            } catch (error) {
+                console.error('Eroare la preluare date:', error);
+                document.getElementById('update-time').textContent = `Eroare: ${error.message}`;
+                
+                // Încearcă din nou peste 5 secunde
+                setTimeout(fetchData, 5000);
+            }
+        }
+
+        // Initial load
+        fetchData();
+        
+        // Refresh data every 5 seconds
+        setInterval(fetchData, 5000);
+    </script>
+</body>
+</html>

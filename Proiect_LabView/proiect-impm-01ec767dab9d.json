@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "proiect-impm",
+  "private_key_id": "01ec767dab9d54f0d7ce58e2a958b943b8693b56",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCYa7ttqBHsSkDH\nwUzvvg/aWOfav7+X8rvXTupBTvTZHI1ABcjmnvCr/JDLhFGR72ytoeKzDN7Tlti3\ntydSls+rK9t0M4dG1s2zCM0Zj8+682Me+XhZ6v7u7HId8HTC+Z8F3ogIxtmBXrWa\n3MJfu+N8OYBD4RqIcijhvQVatZ6P1VGo/K8ycg97UQBU2dmW+O0PIjfK9/SUTG73\n68kbm3HqFn8r1Il9m4B7HRPPMe/BPtOWHBM5LxWcgAGKpwd86sTwS18Zyapw+vUz\nxbl4u+m8fUZC6wVc5EIwnXsUEz+0Ob3i9KTV6jNVLgZZYbjmgBEu+cO7VrCFn5AN\n62Ltpg/JAgMBAAECggEACXCqtBjzuznCF10egb64xqI5AfBcUnHjNmuZ0J+uRIAj\nM3LoRXhUmaJT6XbxgmNczMg4/TPv3RT7qS07zz6t8AEQX3sNhtKo/Myvv0SL7h1C\n51k2HgOS9INKchZBdQ32zmtA66I9OGkAQG4pz7oYVcpN6mZXuVmwtIJ7gWm8P1Yz\ndyCA+aaUo+lm++pJRtcjyv3Fh5xMU+UlXJj+kvXy7Yu23h7I+iWs63hBiNw2f+5g\nS0rJJbRV7JHwDfiLlhBIlCjWJ5CVIWwrQ80ubKxQNi6OnBu96qCDL35Du/VOrZ3L\nH89VWpoOxm6M/ChtASIfoJ/J5w8TGGlw4lWfPqlwsQKBgQDH4t2N+BMhpMo4sk+e\nlVwMIia/tCZ+SvaaFZwUUkxdDvhQF/zrdGhE4jKm/mWIomklJ0CZEfS0hBnkcYbP\nYMYfsts4FzNXHhtZ7pbOx739+xG4TDozkx8iXgUUcTNGhtWulbooiiNWhJVLmn8V\nnSj58BlpDmVam+xQxKQxamavXQKBgQDDNbGiYpMBnF+evud/nkBxCCE3Ckc3lT3J\nK1LZTnqrb2rZwS4ERrcLVv8sur1uvigZa5Kamm0MNZvfa/Yt+voIa7SACgvH0CyS\nQM2mJM3uoCJH2eiidm2IRAeD8xjSdRJGUtATmrbRrwXges6ibmrInROImZTtwQyp\nUhNwkIMXXQKBgQC1sKa47FzfgP37yUEMIjG4KbbVHHi85YEAkFH+OsyE7h2SGCvj\nDj3VF1L5blZ2e0Jd7i8OtD6dc1Jhzzu99vZATABuHNCjCI/OEExuiytM2NHDly50\nQO/U+mddrIPyQI+tERZU0TPL6doXDckkqWVcwv0l/FruoLqOtB+Xd2L9VQKBgQCd\nOTHIx/v+4CNjh/6MGrlsUE/wNKcHbXxF+k7QFxVV3ncAy0Z0yz/CMl9zdzP7bcx+\nLNX3D0mk+8h/OkUc43deMOE//tdeJ5y+btMzbZEvEGqL1EY6E4hEqAYlkDX9y6zc\nVvaf04xLddwV4NNsn+IBkgGZk5kPpNy9ww1FLB9pQQKBgQCBEob+Kp2SN9WU2L0K\nRtuKzeVxNjfunSgYcbFoXkAY0Rk3nzqY6yfLOKC1gsOYNS2HPHDyF1lr4HGpjjje\n7KI1zGFU7mVwwzeapVukjJAM7fLDQiRhbtOv/dn73wQPyDz3IbdQ48Dnrvj50v8g\noSnkTRpAqCEMfEWzP3PjbmJQOg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "project-impm@proiect-impm.iam.gserviceaccount.com",
+  "client_id": "104860589391234896739",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/project-impm%40proiect-impm.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
